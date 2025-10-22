@@ -20,7 +20,9 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "babel-preset-expo": "^9.4.3",
-    "@babel/plugin-transform-private-methods": "^7.21.11"
+    "@babel/plugin-transform-private-methods": "^7.21.11",
+    "@babel/plugin-transform-class-properties": "^7.21.11",
+    "@babel/plugin-transform-private-property-in-object": "^7.21.11"
   },
   "private": true
 }
