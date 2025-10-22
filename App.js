@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TimerScreen from './src/screens/TimerScreen';
@@ -7,12 +7,12 @@ import RewardScreen from './src/screens/RewardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 const DEFAULT_SEGMENTS = [
-  { id: 1, name: 'Wake up → Bathroom', emoji: '🚿', duration: 5 },
-  { id: 2, name: 'Get dressed', emoji: '👗', duration: 7 },
-  { id: 3, name: 'Breakfast', emoji: '🥞', duration: 15 },
-  { id: 4, name: 'Brush teeth', emoji: '🪥', duration: 3 },
-  { id: 5, name: 'Pack backpack', emoji: '🎒', duration: 5 },
-  { id: 6, name: 'Shoes & coat', emoji: '👟', duration: 3 },
+  { id: 1, name: 'Wake up → Bathroom', emoji: '\uD83D\uDEBF', duration: 5 },
+  { id: 2, name: 'Get dressed', emoji: '\uD83D\uDC57', duration: 7 },
+  { id: 3, name: 'Breakfast', emoji: '\uD83C\uDF5E', duration: 15 },
+  { id: 4, name: 'Brush teeth', emoji: '\uD83E\uDEA5', duration: 3 },
+  { id: 5, name: 'Pack backpack', emoji: '\uD83C\uDF92', duration: 5 },
+  { id: 6, name: 'Shoes & coat', emoji: '\uD83E\uDD7F', duration: 3 },
 ];
 
 export default function App() {
@@ -28,98 +28,105 @@ export default function App() {
 
   const loadSettings = async () => {
     try {
-      const savedSegments = await AsyncStorage.getItem('segments');
-      if (savedSegments) {
-        setSegments(JSON.parse(savedSegments));
+      const storedSegments = await AsyncStorage.getItem('segments');
+      if (storedSegments !== null) {
+        setSegments(JSON.parse(storedSegments));
       }
     } catch (error) {
-      console.log('Error loading settings:', error);
+      Alert.alert('Error loading settings', error.message || 'Unable to load settings.');
     }
   };
 
   const loadStreakData = async () => {
     try {
-      const savedStreak = await AsyncStorage.getItem('streakData');
-      if (savedStreak) {
-        setStreakData(JSON.parse(savedStreak));
+      const storedStreakData = await AsyncStorage.getItem('streakData');
+      if (storedStreakData !== null) {
+        setStreakData(JSON.parse(storedStreakData));
       }
     } catch (error) {
-      console.log('Error loading streak:', error);
+      Alert.alert('Error loading streak data', error.message || 'Unable to load streak data.');
     }
   };
 
-  const saveSettings = async (newSegments) => {
+  const saveSettings = async (updatedSegments) => {
     try {
-      await AsyncStorage.setItem('segments', JSON.stringify(newSegments));
-      setSegments(newSegments);
+      await AsyncStorage.setItem('segments', JSON.stringify(updatedSegments));
+      setSegments(updatedSegments);
     } catch (error) {
-      console.log('Error saving settings:', error);
+      Alert.alert('Error saving settings', error.message || 'Unable to save settings.');
     }
   };
 
-  const updateStreak = async () => {
+  const saveStreakData = async (updatedStreakData) => {
+    try {
+      await AsyncStorage.setItem('streakData', JSON.stringify(updatedStreakData));
+      setStreakData(updatedStreakData);
+    } catch (error) {
+      Alert.alert('Error saving streak data', error.message || 'Unable to save streak data.');
+    }
+  };
+
+  const handleCompleteRoutine = () => {
     const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-
-    let newStreak = { ...streakData };
-
-    if (streakData.lastDate === today) {
-      // Already completed today
-      return;
-    } else if (streakData.lastDate === yesterday) {
-      // Consecutive day
-      newStreak.count += 1;
-      newStreak.lastDate = today;
+    let newCount = streakData.count;
+    if (streakData.lastDate) {
+      const lastDate = new Date(streakData.lastDate).toDateString();
+      if (lastDate === today) {
+        // Already completed today; do nothing
+        return;
+      }
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (lastDate === yesterday.toDateString()) {
+        newCount += 1;
+      } else {
+        newCount = 1;
+      }
     } else {
-      // New streak
-      newStreak.count = 1;
-      newStreak.lastDate = today;
+      newCount = 1;
     }
-
-    setStreakData(newStreak);
-    await AsyncStorage.setItem('streakData', JSON.stringify(newStreak));
-  };
-
-  const handleComplete = () => {
-    updateStreak();
+    const updatedStreakData = { count: newCount, lastDate: today };
+    saveStreakData(updatedStreakData);
     setShowReward(true);
   };
 
-  const handleRewardClose = () => {
-    setShowReward(false);
+  const handleTimerComplete = () => {
+    handleCompleteRoutine();
   };
 
-  if (showReward) {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <RewardScreen onClose={handleRewardClose} streak={streakData.count} />
-      </View>
-    );
-  }
+  const handleSettingsSave = (updatedSegments) => {
+    saveSettings(updatedSegments);
+    setCurrentScreen('timer');
+  };
 
-  if (currentScreen === 'settings') {
-    return (
-      <View style={styles.container}>
-        <StatusBar style="dark" />
-        <SettingsScreen
-          segments={segments}
-          onSave={saveSettings}
-          onBack={() => setCurrentScreen('timer')}
-        />
-      </View>
-    );
-  }
+  const handleDismissReward = () => {
+    setShowReward(false);
+    setCurrentScreen('timer');
+  };
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" />
-      <TimerScreen
-        segments={segments}
-        onComplete={handleComplete}
-        onSettings={() => setCurrentScreen('settings')}
-        streak={streakData.count}
-      />
+      <StatusBar style="auto" />
+      {currentScreen === 'timer' && !showReward && (
+        <TimerScreen
+          segments={segments}
+          onComplete={handleTimerComplete}
+          onSettingsPress={() => setCurrentScreen('settings')}
+        />
+      )}
+      {currentScreen === 'settings' && (
+        <SettingsScreen
+          segments={segments}
+          onSave={handleSettingsSave}
+          onCancel={() => setCurrentScreen('timer')}
+        />
+      )}
+      {showReward && (
+        <RewardScreen
+          streakCount={streakData.count}
+          onClose={handleDismissReward}
+        />
+      )}
     </View>
   );
 }
@@ -127,6 +134,5 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFE5F4',
   },
 });
