@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Animated,
-  Dimensions,
-} from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Animated, Dimensions, } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 
@@ -21,7 +13,7 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // New effect: update timeLeft when segments or currentSegmentIndex changes
+  // Update timeLeft when segments or currentSegmentIndex changes
   useEffect(() => {
     setTimeLeft(segments[currentSegmentIndex].duration * 60);
   }, [segments, currentSegmentIndex]);
@@ -46,16 +38,8 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
     // Pulse animation for current segment
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
+        Animated.timing(pulseAnim, { toValue: 1.1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
       ])
     ).start();
   }, []);
@@ -75,10 +59,8 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
   const handleSegmentComplete = async () => {
     await playGentleSound();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
     const newCompleted = [...completedSegments, currentSegmentIndex];
     setCompletedSegments(newCompleted);
-
     if (currentSegmentIndex < segments.length - 1) {
       const nextIndex = currentSegmentIndex + 1;
       setCurrentSegmentIndex(nextIndex);
@@ -126,32 +108,27 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
         </TouchableOpacity>
         {streak > 0 && (
           <View style={styles.streakBadge}>
-            <Text style={styles.streakText}>🔥 {streak} days!</Text>
+            <Text style={styles.streakText}>{streak} days!</Text>
           </View>
         )}
       </View>
-
       <ScrollView contentContainerStyle={styles.content}>
         {/* Main Current Segment Display */}
-        <Animated.View
-          style={[styles.currentSegmentCard, { transform: [{ scale: pulseAnim }] }]}
-        >
+        <Animated.View style={[styles.currentSegmentCard, { transform: [{ scale: pulseAnim }] }] }>
           <Text style={styles.currentLabel}>RIGHT NOW:</Text>
           <Text style={styles.emojiLarge}>{currentSegment.emoji}</Text>
           <Text style={styles.segmentName}>{currentSegment.name}</Text>
           <Text style={styles.timerDisplay}>{formatTime(timeLeft)}</Text>
-
           {/* Progress Bar */}
           <View style={styles.progressBarContainer}>
             <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
           </View>
         </Animated.View>
-
         {/* Start/Pause Button */}
         {!isRunning ? (
           <TouchableOpacity style={styles.startButton} onPress={handleStart}>
             <Text style={styles.startButtonText}>
-              {completedSegments.length === 0 ? '🌟 START! 🌟' : '▶️ CONTINUE'}
+              {completedSegments.length === 0 ? ' START! ' : '▶️ CONTINUE'}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -159,14 +136,18 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
             <Text style={styles.pauseButtonText}>⏸️ PAUSE</Text>
           </TouchableOpacity>
         )}
-
+        {/* Done Button */}
+        {isRunning && (
+          <TouchableOpacity style={styles.doneButton} onPress={handleSegmentComplete}>
+            <Text style={styles.doneButtonText}>✅ DONE</Text>
+          </TouchableOpacity>
+        )}
         {/* Reset Button */}
         {(completedSegments.length > 0 || timeLeft < totalDuration) && (
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>🔄 Start Over</Text>
+            <Text style={styles.resetButtonText}>Start Over</Text>
           </TouchableOpacity>
         )}
-
         {/* Segment Progress List */}
         <View style={styles.segmentList}>
           <Text style={styles.segmentListTitle}>Morning Routine:</Text>
@@ -174,7 +155,6 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
             const isCompleted = completedSegments.includes(index);
             const isCurrent = index === currentSegmentIndex;
             const isUpcoming = index > currentSegmentIndex;
-
             return (
               <View
                 key={segment.id}
@@ -196,7 +176,7 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
                   {segment.name}
                 </Text>
                 {isCompleted && <Text style={styles.checkmark}>✅</Text>}
-                {isCurrent && <Text style={styles.arrow}>👉</Text>}
+                {isCurrent && <Text style={styles.arrow}></Text>}
               </View>
             );
           })}
@@ -273,77 +253,80 @@ const styles = StyleSheet.create({
   timerDisplay: {
     fontSize: 72,
     fontWeight: 'bold',
-    color: '#FF1493',
-    fontVariant: ['tabular-nums'],
+    color: '#FF69B4',
+    marginBottom: 15,
+    textAlign: 'center',
   },
   progressBarContainer: {
+    height: 10,
     width: '100%',
-    height: 20,
-    backgroundColor: '#FFB6D9',
-    borderRadius: 10,
-    marginTop: 20,
+    backgroundColor: '#F1F1F1',
+    borderRadius: 5,
     overflow: 'hidden',
+    marginTop: 10,
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#32CD32',
-    borderRadius: 10,
+    backgroundColor: '#FF69B4',
   },
   startButton: {
-    backgroundColor: '#32CD32',
-    paddingVertical: 25,
-    paddingHorizontal: 60,
-    borderRadius: 50,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: '#FF69B4',
+    borderRadius: 25,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginBottom: 10,
   },
   startButtonText: {
-    fontSize: 36,
-    fontWeight: 'bold',
     color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   pauseButton: {
-    backgroundColor: '#FFA500',
-    paddingVertical: 25,
-    paddingHorizontal: 60,
-    borderRadius: 50,
-    marginVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    backgroundColor: '#FFB6C1',
+    borderRadius: 25,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginBottom: 10,
   },
   pauseButtonText: {
-    fontSize: 36,
-    fontWeight: 'bold',
     color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  doneButton: {
+    backgroundColor: '#8BC34A',
+    borderRadius: 25,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginBottom: 10,
+  },
+  doneButtonText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   resetButton: {
-    backgroundColor: '#FF69B4',
+    backgroundColor: '#E0E0E0',
+    borderRadius: 25,
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    marginTop: 10,
+    paddingHorizontal: 30,
+    marginBottom: 20,
   },
   resetButtonText: {
-    fontSize: 20,
+    color: '#333',
+    fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    textAlign: 'center',
   },
   segmentList: {
     width: '100%',
-    marginTop: 30,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 20,
+    marginTop: 20,
   },
   segmentListTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#FF69B4',
     marginBottom: 15,
