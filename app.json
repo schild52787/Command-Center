@@ -5,11 +5,6 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFE5F4"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -17,14 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.elle.morningroutine"
     },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFE5F4"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "android": {},
+    "web": {}
   }
 }
