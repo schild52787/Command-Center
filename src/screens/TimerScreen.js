@@ -21,6 +21,11 @@ export default function TimerScreen({ segments, onComplete, onSettings, streak }
   const progressAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
+  // New effect: update timeLeft when segments or currentSegmentIndex changes
+  useEffect(() => {
+    setTimeLeft(segments[currentSegmentIndex].duration * 60);
+  }, [segments, currentSegmentIndex]);
+
   useEffect(() => {
     let interval;
     if (isRunning && timeLeft > 0) {
